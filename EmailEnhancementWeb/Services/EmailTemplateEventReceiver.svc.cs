@@ -85,12 +85,13 @@ namespace EmailEnhancementWeb.Services
                     string ImageUrl = Convert.ToString(item["Image_x0020_Path"]);
                     string subject = Convert.ToString(item["Subject"]);
 
-                    //ListItemCreationInformation cInfo = new ListItemCreationInformation();
-                    //ListItem newItem = test.AddItem(cInfo);
-                    //string text = choiceID + body;
-                    //newItem["Title"] = text;
-                    //newItem.Update();
-                    //clientContext.ExecuteQuery();
+                    List test = clientContext.Web.Lists.GetByTitle("Test");
+                    ListItemCreationInformation cInfo = new ListItemCreationInformation();
+                    ListItem newItem = test.AddItem(cInfo);
+                    string text = choiceID + body+templateType+ImageUrl;
+                    newItem["Title"] = text;
+                    newItem.Update();
+                    clientContext.ExecuteQuery();
 
 
                     CamlQuery query = new CamlQuery();
