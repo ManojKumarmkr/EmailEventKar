@@ -188,7 +188,6 @@ namespace EmailEnhancementWeb.Services
                             //formattedBody = body;
                             nomItem["Manager_x0020_Email"] = formattedBody;
                             mgr = (FieldUserValue)nomItem["Approving_x0020_Manager"];
-                            mgr = (FieldUserValue)nomItem["Approving_x0020_Manager"];
                             To.Add(mgr);
 
 
@@ -199,7 +198,7 @@ namespace EmailEnhancementWeb.Services
 
                             break;
 
-                        case "ManagerRetractNotify":
+                        case "Manager Retract Notify":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
                             //formattedBody = body;
                             nomItem["Mgr_x0020_Draft_x0020_Email"] = formattedBody;
@@ -223,7 +222,7 @@ namespace EmailEnhancementWeb.Services
                                 CC.AddRange(coords);
                             break;
 
-                        case "ManagerRejected":
+                        case "Manager Rejected":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
                             //formattedBody = body;
                             nomItem["Mgr_x0020_Reject_x0020_Email"] = formattedBody;
@@ -241,7 +240,7 @@ namespace EmailEnhancementWeb.Services
                                 CC.AddRange(coords);
                             break;
 
-                        case "ManagerReminder":
+                        case "Manager Reminder":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
                             //formattedBody = body;
                             nomItem["Mgr_x0020_Remind_x0020_Email"] = formattedBody;
@@ -269,7 +268,7 @@ namespace EmailEnhancementWeb.Services
                                 CC.AddRange(coords);
                             break;
 
-                        case "NomineeFailed":
+                        case "Nominee Failed":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
                             //formattedBody = body;
                             nomItem["Failure_x0020_Email"] = formattedBody;
@@ -287,7 +286,7 @@ namespace EmailEnhancementWeb.Services
                                 CC.AddRange(coords);
                             break;
 
-                        case "NomineeSelected":
+                        case "Nominee Selected":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
                             //formattedBody = body;
                             nomItem["Success_x0020_Email"] = formattedBody;
@@ -313,7 +312,7 @@ namespace EmailEnhancementWeb.Services
                                 CC.AddRange(coords);
                             break;
 
-                        case "ReviewerReminder":
+                        case "Reviewer Reminder":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
                             //formattedBody = body;
                             nomItem["Reminder_x0020_Email"] = formattedBody;
@@ -325,7 +324,7 @@ namespace EmailEnhancementWeb.Services
                                 CC.AddRange(coords);
                             break;
 
-                        case "NominatorNotify":
+                        case "Nominator Notify":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
                             //formattedBody = body;
                             nomItem["Nominator_x0020_Email"] = formattedBody;
@@ -465,7 +464,7 @@ namespace EmailEnhancementWeb.Services
             const string NOMINATION_SUBMITDATE = "${SUBMITDATE}";
             const string NOMINATION_URL = "${NOMINATION}";
 
-            string nominatorUserID = Convert.ToString((FieldUserValue)nomItem["Nominator"]);
+            string nominatorUserID = Convert.ToString(((FieldUserValue)nomItem["Nominator"]).LookupValue);
             string TeamName = Convert.ToString(nomItem["Team_x0020_Name"]);
             string SubmittedDate = Convert.ToString((DateTime)nomItem["Submitted_x0020_Date"]);
 
