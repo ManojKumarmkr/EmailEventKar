@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--Created:cb85b80c-f585-40ff-8bfc-12ff4d0e34a9-->
+<App xmlns="http://schemas.microsoft.com/sharepoint/2012/app/manifest"
+     Name="EmailEnhancement"
+     ProductID="{8550553c-211f-4cc0-b17f-71dbe43f89e5}"
+     Version="1.0.0.0"
+     SharePointMinVersion="15.0.0.0"
+>
+  <Properties>
+    <Title>EmailEnhancement</Title>
+    <StartPage>https://meritrer1.azurewebsites.net/Pages/Default.aspx?{StandardTokens}</StartPage>
+    <InstalledEventEndpoint>https://meritrer1.azurewebsites.net/Services/AppEventReceiver.svc</InstalledEventEndpoint>
+    <UninstallingEventEndpoint>https://meritrer1.azurewebsites.net/Services/AppEventReceiver.svc</UninstallingEventEndpoint>
+    <UpgradedEventEndpoint>https://meritrer1.azurewebsites.net/Services/AppEventReceiver.svc</UpgradedEventEndpoint>
+  </Properties>
+
+  <AppPrincipal>
+    <RemoteWebApplication ClientId="f85292b5-bd42-4807-ae85-3ca36c256e5b" />
+  </AppPrincipal>
+  <AppPermissionRequests>
+    <AppPermissionRequest Scope="http://sharepoint/content/sitecollection" Right="FullControl" />
+  </AppPermissionRequests>
+</App>

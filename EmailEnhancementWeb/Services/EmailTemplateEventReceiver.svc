@@ -1,0 +1,1 @@
+﻿<%@ ServiceHost Language="C#" Debug="true" Service="EmailEnhancementWeb.Services.EmailTemplateEventReceiver" CodeBehind="EmailTemplateEventReceiver.svc.cs" %>

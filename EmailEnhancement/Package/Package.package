@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" dslVersion="1.0.0.0" Id="239f5b79-5748-4f3d-a653-6176d1a89444" solutionId="239f5b79-5748-4f3d-a653-6176d1a89444" resetWebServer="false" sharePointProductVersion="15.0" name="EmailEnhancement" xmlns="http://schemas.microsoft.com/VisualStudio/2008/SharePointTools/PackageModel">
+  <features>
+    <featureReference itemId="7d95c894-85c1-4015-8a40-38423e348070" />
+  </features>
+</package>
