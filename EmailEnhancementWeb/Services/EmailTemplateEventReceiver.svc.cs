@@ -103,13 +103,14 @@ namespace EmailEnhancementWeb.Services
                     clientContext.ExecuteQuery();
                     List imageLibrary = clientContext.Web.Lists.GetByTitle("Test");
                     ListItemCreationInformation itemCreateInfo = new ListItemCreationInformation();
-                    ListItem oListItem = imageLibrary.GetItemById(properties.ItemEventProperties.ListItemId);
+                    //ListItem oListItem = imageLibrary.GetItemById(properties.ItemEventProperties.ListItemId);
+                    ListItem oListItem = imageLibrary.GetItemById(14);
                    // string _userLoginName = properties.ItemEventProperties.UserLoginName;
                   //  string firstName = properties.ItemEventProperties.AfterProperties["First"].ToString();
 
                   //  string lastName = properties.ItemEventProperties.AfterProperties["Last"].ToString();
                    // string fullname = GetProfilePropertyFor(clientContext, _userLoginName, "FirstName");
-                    oListItem["fullname"] = "tcs:" ;
+                    oListItem["Title"] = "tcs:" ;
                     oListItem.Update();
                     clientContext.ExecuteQuery();
 
