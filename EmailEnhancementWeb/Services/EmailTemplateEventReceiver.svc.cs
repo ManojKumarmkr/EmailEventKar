@@ -67,50 +67,67 @@ namespace EmailEnhancementWeb.Services
                     clientContext.ExecuteQuery();
                      * */
 
-
-                    clientContext.Load(clientContext.Web);
-                    clientContext.ExecuteQuery();
-                    List questionChoice = clientContext.Web.Lists.GetByTitle("Question Choice");
-                    List nominations = clientContext.Web.Lists.GetByTitle("Nomination");
-
-                    string eventlist = properties.ItemEventProperties.ListTitle;
-                    ListItem item = clientContext.Web.Lists.GetByTitle("Email Template").GetItemById(
-                    properties.ItemEventProperties.ListItemId);
-                    clientContext.Load(item);
-                    clientContext.ExecuteQuery();
-                    FieldLookupValue group = (FieldLookupValue)item["Choice_x0020_ID"];
-                    string choiceID = group.LookupValue;
-                    string templateType = Convert.ToString(item["Template_x0020_Type"]);
-                    string body = Convert.ToString(item["Body"]);
-                    string ImageUrl = Convert.ToString(item["Image_x0020_Path"]);
-                    string subject = Convert.ToString(item["Subject"]);
-
-                    List test = clientContext.Web.Lists.GetByTitle("Test");
-                    ListItemCreationInformation cInfo = new ListItemCreationInformation();
-                    ListItem newItem = test.AddItem(cInfo);
-                    string text = choiceID + body+templateType+ImageUrl;
-                    newItem["Title"] = text;
-                    newItem.Update();
-                    clientContext.ExecuteQuery();
-
-
-                    CamlQuery query = new CamlQuery();
-                    query.ViewXml = string.Format("<View><Query>" +
-                                                "<Where>" +
-                                                        "<Eq><FieldRef Name='Title' />" +
-                                                        "<Value Type='Text'>{0}</Value></Eq>" +
-                                                    "</Where></Query><RowLimit>500</RowLimit></View>", choiceID);
-
-                    Microsoft.SharePoint.Client.ListItemCollection spItems = questionChoice.GetItems(query);
-
-                    clientContext.Load(spItems);
-                    clientContext.ExecuteQuery();
-
-                    foreach (ListItem spItem in spItems)
+                    try
                     {
-                        string choiceEN = Convert.ToString(spItem["Choice_x0020_EN"]);
-                        updateNominations(clientContext, nominations, templateType, choiceEN, body, subject, ImageUrl);
 
+                        clientContext.Load(clientContext.Web);
+                        clientContext.ExecuteQuery();
+                        List questionChoice = clientContext.Web.Lists.GetByTitle("Question Choice");
+                        List nominations = clientContext.Web.Lists.GetByTitle("Nomination");
+
+                        string eventlist = properties.ItemEventProperties.ListTitle;
+                        ListItem item = clientContext.Web.Lists.GetByTitle("Email Template").GetItemById(
+                        properties.ItemEventProperties.ListItemId);
+                        clientContext.Load(item);
+                        clientContext.ExecuteQuery();
+                        FieldLookupValue group = (FieldLookupValue)item["Choice_x0020_ID"];
+                        string choiceID = group.LookupValue;
+                        string templateType = Convert.ToString(item["Template_x0020_Type"]);
+                        string body = Convert.ToString(item["Body"]);
+                        string ImageUrl = Convert.ToString(item["Image_x0020_Path"]);
+                        string subject = Convert.ToString(item["Subject"]);
+
+                        //List test = clientContext.Web.Lists.GetByTitle("Test");
+                        //ListItemCreationInformation cInfo = new ListItemCreationInformation();
+                        //ListItem newItem = test.AddItem(cInfo);
+                        //string text = choiceID + body + templateType + ImageUrl;
+                        //newItem["Title"] = text;
+                        //newItem.Update();
+                        //clientContext.ExecuteQuery();
+
+
+                        CamlQuery query = new CamlQuery();
+                        query.ViewXml = string.Format("<View><Query>" +
+                                                    "<Where>" +
+                                                            "<Eq><FieldRef Name='Title' />" +
+                                                            "<Value Type='Text'>{0}</Value></Eq>" +
+                                                        "</Where></Query><RowLimit>500</RowLimit></View>", choiceID);
+
+                        Microsoft.SharePoint.Client.ListItemCollection spItems = questionChoice.GetItems(query);
+
+                        clientContext.Load(spItems);
+                        clientContext.ExecuteQuery();
+
+                        foreach (ListItem spItem in spItems)
+                        {
+                            string choiceEN = Convert.ToString(spItem["Choice_x0020_EN"]);
+                            updateNominations(clientContext, nominations, templateType, choiceEN, body, subject, ImageUrl);
+
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Karthik code
+                        clientContext.Load(clientContext.Web);
+                        clientContext.ExecuteQuery();
+                        List imageLibrary = clientContext.Web.Lists.GetByTitle("Test");
+                        ListItemCreationInformation itemCreateInfo = new ListItemCreationInformation();
+                        ListItem oListItem = imageLibrary.GetItemById(14);
+
+                        oListItem["Title"] = "tcs:" + ex.ToString();
+                        oListItem.Update();
+                        clientContext.ExecuteQuery();
+ 
                     }
                 }
             }
