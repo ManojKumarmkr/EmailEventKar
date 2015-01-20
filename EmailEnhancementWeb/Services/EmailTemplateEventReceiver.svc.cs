@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Configuration;
 using Microsoft.SharePoint.Client;
 using Microsoft.SharePoint.Client.EventReceivers;
 
@@ -183,8 +184,8 @@ namespace EmailEnhancementWeb.Services
                     {
                         case "Manager":
 
-                            //formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            formattedBody = body;
+                            formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
+                            //formattedBody = body;
                             nomItem["Manager_x0020_Email"] = formattedBody;
                             mgr = (FieldUserValue)nomItem["Approving_x0020_Manager"];
                             mgr = (FieldUserValue)nomItem["Approving_x0020_Manager"];
@@ -199,8 +200,8 @@ namespace EmailEnhancementWeb.Services
                             break;
 
                         case "ManagerRetractNotify":
-                            //formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            formattedBody = body;
+                            formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
+                            //formattedBody = body;
                             nomItem["Mgr_x0020_Draft_x0020_Email"] = formattedBody;
                             n = (FieldUserValue)nomItem["Approving_x0020_Manager"];
                             if (n != null)
@@ -223,8 +224,8 @@ namespace EmailEnhancementWeb.Services
                             break;
 
                         case "ManagerRejected":
-                            //formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            formattedBody = body;
+                            formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
+                            //formattedBody = body;
                             nomItem["Mgr_x0020_Reject_x0020_Email"] = formattedBody;
                             n = (FieldUserValue)nomItem["Nominator"];
                             To.Add(n);
@@ -241,8 +242,8 @@ namespace EmailEnhancementWeb.Services
                             break;
 
                         case "ManagerReminder":
-                            //formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            formattedBody = body;
+                            formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
+                            //formattedBody = body;
                             nomItem["Mgr_x0020_Remind_x0020_Email"] = formattedBody;
                             mgr = (FieldUserValue)nomItem["Approving_x0020_Manager"];
                             To.Add(mgr);
@@ -255,7 +256,7 @@ namespace EmailEnhancementWeb.Services
                             break;
 
                         case "Submitted":
-                            //formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
+                            formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
                             nomItem["Submitted_x0020_Email"] = formattedBody;
                             n = (FieldUserValue)nomItem["Nominator"];
                             To.Add(n);
@@ -269,8 +270,8 @@ namespace EmailEnhancementWeb.Services
                             break;
 
                         case "NomineeFailed":
-                            //formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            formattedBody = body;
+                            formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
+                            //formattedBody = body;
                             nomItem["Failure_x0020_Email"] = formattedBody;
                             nom = (FieldUserValue[])nomItem["Nominees"];
                             To.AddRange(nom);
@@ -287,8 +288,8 @@ namespace EmailEnhancementWeb.Services
                             break;
 
                         case "NomineeSelected":
-                            //formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            formattedBody = body;
+                            formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
+                            //formattedBody = body;
                             nomItem["Success_x0020_Email"] = formattedBody;
                             nom = (FieldUserValue[])nomItem["Nominees"];
                             To.AddRange(nom);
@@ -301,8 +302,8 @@ namespace EmailEnhancementWeb.Services
                             break;
 
                         case "Reviewer":
-                            //formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            formattedBody = body;
+                            formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
+                            //formattedBody = body;
                             nomItem["Reviewer_x0020_Email"] = formattedBody;
                             nom = (FieldUserValue[])nomItem["Reviewers"];
                             To.AddRange(nom);
@@ -313,8 +314,8 @@ namespace EmailEnhancementWeb.Services
                             break;
 
                         case "ReviewerReminder":
-                            //formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            formattedBody = body;
+                            formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
+                            //formattedBody = body;
                             nomItem["Reminder_x0020_Email"] = formattedBody;
                             nom = (FieldUserValue[])nomItem["Reviewers"];
                             To.AddRange(nom);
@@ -325,8 +326,8 @@ namespace EmailEnhancementWeb.Services
                             break;
 
                         case "NominatorNotify":
-                            //formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            formattedBody = body;
+                            formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
+                            //formattedBody = body;
                             nomItem["Nominator_x0020_Email"] = formattedBody;
 
                             n = (FieldUserValue)nomItem["Nominator"];
@@ -343,6 +344,7 @@ namespace EmailEnhancementWeb.Services
 
                     nomItem.Update();
                     clientContext.ExecuteQuery();
+                    updateEmailSendList(clientContext, nominationId, nomItem, subject, formattedBody, To, CC, templateType);
                 }
             }
             catch (Exception ex)
@@ -360,7 +362,150 @@ namespace EmailEnhancementWeb.Services
 
             }
 
-            //updateEmailSendList(clientContext, nominationId, nomItem, subject, formattedBody, To, CC, templateType);
+            
+        }
+
+        //updates the emailsend list based on the nominationID
+        public static void updateEmailSendList(ClientContext clientContext, string nominationId, ListItem nomItem, string subject, string body, List<FieldUserValue> To, List<FieldUserValue> CC, string templateType)
+        {
+
+            List emailSend = clientContext.Web.Lists.GetByTitle("EmailSend");
+
+            string status = Convert.ToString(nomItem["Submission_x0020_Status"]);
+            string team = Convert.ToString(nomItem["Team_x0020_Name"]);
+            subject.Replace("{0}", team);
+
+            CamlQuery query;
+
+            query = new CamlQuery();
+            query.ViewXml = string.Format("<View><Query>" +
+                            "<Where>" +
+                                    "<Eq><FieldRef Name='Nomination' LookupId='TRUE'/>" +
+                                    "<Value Type='Lookup'>{0}</Value></Eq>" +
+                            "</Where></Query><ViewFields><FieldRef Name='ID' /><RowLimit>500</RowLimit></ViewFields></View>", nominationId);
+
+            Microsoft.SharePoint.Client.ListItemCollection mails = emailSend.GetItems(query);
+            clientContext.Load(mails);
+            clientContext.ExecuteQuery();
+
+            foreach (ListItem mail in mails)
+            {
+                if (status == "Draft" && templateType == "ManagerRetractNotify")
+                {
+                    mail["Subject"] = subject;
+                    mail["Body"] = body;
+                    mail["To"] = To;
+                    mail["CC"] = CC;
+                }
+                if (status == "Submitted" && templateType == "Submitted")
+                {
+                    mail["Subject"] = subject;
+                    mail["Body"] = body;
+                    mail["To"] = To;
+                    mail["CC"] = CC;
+                }
+                if (status == "WaitingManagerApproval" && templateType == "Manager")
+                {
+                    mail["Subject"] = subject;
+                    mail["Body"] = body;
+                    mail["To"] = To;
+                    mail["CC"] = CC;
+                }
+                if (status == "InReview" && templateType == "Reviewer")
+                {
+                    mail["Subject"] = subject;
+                    mail["Body"] = body;
+                    mail["To"] = To;
+                    mail["CC"] = CC;
+                }
+                if (status == "Completed" && templateType == "NomineeSelected")
+                {
+                    mail["Subject"] = subject;
+                    mail["Body"] = body;
+                    mail["To"] = To;
+                    mail["CC"] = CC;
+                }
+                if (status == "NomineeFailed" && templateType == "Rejected")
+                {
+                    mail["Body"] = body;
+                    mail["To"] = To;
+                    mail["CC"] = CC;
+                }
+                if (status == "NominatorNotify" && templateType == "NominatorNotify")
+                {
+                    mail["Subject"] = subject;
+                    mail["Body"] = body;
+                    mail["To"] = To;
+                    mail["CC"] = CC;
+                }
+                if (status == "ManagerRejected" && templateType == "ManagerRejected")
+                {
+                    mail["Subject"] = subject;
+                    mail["Body"] = body;
+                    mail["To"] = To;
+                    mail["CC"] = CC;
+                }
+
+                //mail["Body"] = body;
+                //mail["Subject"] = subject;
+                mail.Update();
+                clientContext.ExecuteQuery();
+            }
+
+        }
+
+        //updates the nomination data in the body
+        public static string ExpandEmailBody(string text, ListItem nomItem, string imageUrl)
+        {
+
+            const string NOMINATOR = "${NOMINATOR}";
+            const string NOMINATION_SUMMARY = "${SUMMARY}";
+            const string NOMINATION_SIGNATURE = "${SIGNATURE}";
+            const string NOMINATION_TEAMNAME = "${TEAMNAME}";
+            const string NOMINATION_SUBMITDATE = "${SUBMITDATE}";
+            const string NOMINATION_URL = "${NOMINATION}";
+
+            string nominatorUserID = Convert.ToString((FieldUserValue)nomItem["Nominator"]);
+            string TeamName = Convert.ToString(nomItem["Team_x0020_Name"]);
+            string SubmittedDate = Convert.ToString((DateTime)nomItem["Submitted_x0020_Date"]);
+
+            string url = string.Format("{0}/Nomination Summary/{1}-{1}.pdf", ConfigurationManager.AppSettings["SiteUrl"], nomItem.Id.ToString());
+            url = url.Replace(" ", "%20");
+
+            string tag = string.Format("<a href='{0}'>{1}</a>", url, "Click here for nomination summary");
+
+            string img = string.Format("<img src='{0}'/>", imageUrl);
+
+            text = text.Replace(NOMINATOR, nominatorUserID);
+            text = text.Replace(Escape(NOMINATOR), nominatorUserID);
+
+            text = text.Replace(NOMINATION_SUMMARY, tag);
+            text = text.Replace(Escape(NOMINATION_SUMMARY), tag);
+
+            text = text.Replace(NOMINATION_SIGNATURE, img);
+            text = text.Replace(Escape(NOMINATION_SIGNATURE), img);
+
+            text = text.Replace(NOMINATION_TEAMNAME, TeamName);
+            text = text.Replace(Escape(NOMINATION_TEAMNAME), TeamName);
+
+
+            text = text.Replace(NOMINATION_SUBMITDATE, SubmittedDate);
+            text = text.Replace(Escape(NOMINATION_SUBMITDATE), SubmittedDate);
+
+            text = text.Replace(NOMINATION_URL, "<nomination.url>");
+            text = text.Replace(Escape(NOMINATION_URL), "<nomination.url>");
+
+
+            return text;
+
+        }
+
+        private static string Escape(string token)
+        {
+            token = token.Replace("{", "&#123;");
+            token = token.Replace("}", "&#125;");
+
+            return token;
         }
     }
 }
