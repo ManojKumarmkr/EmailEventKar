@@ -9,6 +9,7 @@ namespace EmailEnhancementWeb.Services
 {
     public class EmailTemplateEventReceiver : IRemoteEventService
     {
+        
         public SPRemoteEventResult ProcessEvent(SPRemoteEventProperties properties)
         {
             SPRemoteEventResult result = new SPRemoteEventResult();
