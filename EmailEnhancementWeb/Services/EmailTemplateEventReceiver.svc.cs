@@ -52,31 +52,31 @@ namespace EmailEnhancementWeb.Services
 
                 if (clientContext != null)
                 {
-                    clientContext.Load(clientContext.Web);
-                    clientContext.ExecuteQuery();
-                    List questionChoice = clientContext.Web.Lists.GetByTitle("Question Choice");
-                    List nominations = clientContext.Web.Lists.GetByTitle("Nomination");
-                    List test = clientContext.Web.Lists.GetByTitle("Test");
+                    //clientContext.Load(clientContext.Web);
+                    //clientContext.ExecuteQuery();
+                    //List questionChoice = clientContext.Web.Lists.GetByTitle("Question Choice");
+                    //List nominations = clientContext.Web.Lists.GetByTitle("Nomination");
+                   // List test = clientContext.Web.Lists.GetByTitle("Test");
 
-                    string eventlist = properties.ItemEventProperties.ListTitle;
-                    ListItem item = clientContext.Web.Lists.GetByTitle("Email Template").GetItemById(
-                    properties.ItemEventProperties.ListItemId);
-                    clientContext.Load(test);
-                    clientContext.Load(item);
-                    clientContext.ExecuteQuery();
-                    FieldLookupValue group = (FieldLookupValue)item["Choice_x0020_ID"];
-                    string choiceID = group.LookupValue;
-                    string templateType = Convert.ToString(item["Template_x0020_Type"]);
-                    string body = Convert.ToString(item["Body"]);
-                    string ImageUrl = Convert.ToString(item["Image_x0020_Path"]);
-                    string subject = Convert.ToString(item["Subject"]);
+                    ////string eventlist = properties.ItemEventProperties.ListTitle;
+                    ////ListItem item = clientContext.Web.Lists.GetByTitle("Email Template").GetItemById(
+                    ////properties.ItemEventProperties.ListItemId);
+                    ////clientContext.Load(test);
+                    ////clientContext.Load(item);
+                    ////clientContext.ExecuteQuery();
+                    ////FieldLookupValue group = (FieldLookupValue)item["Choice_x0020_ID"];
+                    ////string choiceID = group.LookupValue;
+                    ////string templateType = Convert.ToString(item["Template_x0020_Type"]);
+                    ////string body = Convert.ToString(item["Body"]);
+                    ////string ImageUrl = Convert.ToString(item["Image_x0020_Path"]);
+                    ////string subject = Convert.ToString(item["Subject"]);
 
-                    ListItemCreationInformation cInfo = new ListItemCreationInformation();
-                    ListItem newItem = test.AddItem(cInfo);
-                    string text = choiceID + body;
-                    newItem["Title"] = text;
-                    newItem.Update();
-                    clientContext.ExecuteQuery();
+                    //////ListItemCreationInformation cInfo = new ListItemCreationInformation();
+                    //////ListItem newItem = test.AddItem(cInfo);
+                    //////string text = "karthick";
+                    //////newItem["Title"] = text;
+                    //////newItem.Update();
+                    //////clientContext.ExecuteQuery();
 
 
                     //        CamlQuery query = new CamlQuery();
@@ -97,6 +97,22 @@ namespace EmailEnhancementWeb.Services
                     //            updateNominations(clientContext, nominations, templateType, choiceEN, body, subject, ImageUrl);
 
                     //        }
+
+
+                    clientContext.Load(clientContext.Web);
+                    clientContext.ExecuteQuery();
+                    List imageLibrary = clientContext.Web.Lists.GetByTitle("Test");
+                    ListItemCreationInformation itemCreateInfo = new ListItemCreationInformation();
+                    ListItem oListItem = imageLibrary.GetItemById(properties.ItemEventProperties.ListItemId);
+                   // string _userLoginName = properties.ItemEventProperties.UserLoginName;
+                  //  string firstName = properties.ItemEventProperties.AfterProperties["First"].ToString();
+
+                  //  string lastName = properties.ItemEventProperties.AfterProperties["Last"].ToString();
+                   // string fullname = GetProfilePropertyFor(clientContext, _userLoginName, "FirstName");
+                    oListItem["fullname"] = "tcs:" ;
+                    oListItem.Update();
+                    clientContext.ExecuteQuery();
+
                 }
             }
         }
