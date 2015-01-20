@@ -372,7 +372,9 @@ namespace EmailEnhancementWeb.Services
 
             string status = Convert.ToString(nomItem["Submission_x0020_Status"]);
             string team = Convert.ToString(nomItem["Team_x0020_Name"]);
-            subject.Replace("{0}", team);
+            StringBuilder builder = new StringBuilder(subject);
+            builder.Replace("{0}", team);
+            subject = builder.ToString();
 
             CamlQuery query;
 
