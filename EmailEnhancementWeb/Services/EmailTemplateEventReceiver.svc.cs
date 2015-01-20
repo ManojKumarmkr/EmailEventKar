@@ -30,7 +30,26 @@ namespace EmailEnhancementWeb.Services
 
                     else if (properties.EventType == SPRemoteEventType.ItemUpdated)
                     {
-                        itemaddevent(properties);
+                        try
+                        {
+                            itemaddevent(properties);
+                        }
+
+                        catch (Exception ex)
+                        {
+                            // Karthik code
+                            clientContext.Load(clientContext.Web);
+                            clientContext.ExecuteQuery();
+                            List imageLibrary = clientContext.Web.Lists.GetByTitle("Test");
+                            ListItemCreationInformation itemCreateInfo = new ListItemCreationInformation();
+                            ListItem oListItem = imageLibrary.GetItemById(14);
+
+                            oListItem["Title"] = "tcs:" + ex.ToString();
+                            oListItem.Update();
+                            clientContext.ExecuteQuery();
+
+                        }
+
 
                     }
                 }
