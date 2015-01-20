@@ -389,7 +389,7 @@ namespace EmailEnhancementWeb.Services
 
             foreach (ListItem mail in mails)
             {
-                if (status == "Draft" && templateType == "ManagerRetractNotify")
+                if (status == "Draft" && templateType == "Manager Retract Notify")
                 {
                     mail["Subject"] = subject;
                     mail["Body"] = body;
@@ -417,7 +417,7 @@ namespace EmailEnhancementWeb.Services
                     mail["To"] = To;
                     mail["CC"] = CC;
                 }
-                if (status == "Completed" && templateType == "NomineeSelected")
+                if (status == "Completed" && templateType == "Nominee Selected")
                 {
                     mail["Subject"] = subject;
                     mail["Body"] = body;
@@ -430,14 +430,14 @@ namespace EmailEnhancementWeb.Services
                     mail["To"] = To;
                     mail["CC"] = CC;
                 }
-                if (status == "NominatorNotify" && templateType == "NominatorNotify")
+                if (status == "NominatorNotify" && templateType == "Nominator Notify")
                 {
                     mail["Subject"] = subject;
                     mail["Body"] = body;
                     mail["To"] = To;
                     mail["CC"] = CC;
                 }
-                if (status == "ManagerRejected" && templateType == "ManagerRejected")
+                if (status == "ManagerRejected" && templateType == "Manager Rejected")
                 {
                     mail["Subject"] = subject;
                     mail["Body"] = body;
