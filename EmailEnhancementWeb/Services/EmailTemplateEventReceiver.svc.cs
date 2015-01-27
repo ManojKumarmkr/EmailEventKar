@@ -106,6 +106,7 @@ namespace EmailEnhancementWeb.Services
                         string body = Convert.ToString(item["Body"]);
                         string ImageUrl = Convert.ToString(item["Image_x0020_Path"]);
                         string subject = Convert.ToString(item["Subject"]);
+                        bool sendMail = Convert.ToBoolean(item["Send_x0020_Mail"]);
 
                         //List test = clientContext.Web.Lists.GetByTitle("Test");
                         //ListItemCreationInformation cInfo = new ListItemCreationInformation();
@@ -131,7 +132,7 @@ namespace EmailEnhancementWeb.Services
                         foreach (ListItem spItem in spItems)
                         {
                             string choiceEN = Convert.ToString(spItem["Choice_x0020_EN"]);
-                            updateNominations(clientContext, nominations, templateType, choiceEN, body, subject, ImageUrl);
+                            updateNominations(clientContext, nominations, templateType, choiceEN, body, subject, ImageUrl, sendMail);
 
                         }
                     }
@@ -153,7 +154,7 @@ namespace EmailEnhancementWeb.Services
             }
         }
 
-        public static void updateNominations(ClientContext clientContext, List nomination, string templateType, string choiceEN, string body, string subject, string ImageUrl)
+        public static void updateNominations(ClientContext clientContext, List nomination, string templateType, string choiceEN, string body, string subject, string ImageUrl, bool sendMail)
         {
             try
             {
@@ -200,7 +201,6 @@ namespace EmailEnhancementWeb.Services
 
                         case "Manager Retract Notify":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            //formattedBody = body;
                             nomItem["Mgr_x0020_Draft_x0020_Email"] = formattedBody;
                             n = (FieldUserValue)nomItem["Approving_x0020_Manager"];
                             if (n != null)
@@ -224,7 +224,6 @@ namespace EmailEnhancementWeb.Services
 
                         case "Manager Rejected":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            //formattedBody = body;
                             nomItem["Mgr_x0020_Reject_x0020_Email"] = formattedBody;
                             n = (FieldUserValue)nomItem["Nominator"];
                             To.Add(n);
@@ -242,7 +241,6 @@ namespace EmailEnhancementWeb.Services
 
                         case "Manager Reminder":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            //formattedBody = body;
                             nomItem["Mgr_x0020_Remind_x0020_Email"] = formattedBody;
                             mgr = (FieldUserValue)nomItem["Approving_x0020_Manager"];
                             To.Add(mgr);
@@ -270,7 +268,6 @@ namespace EmailEnhancementWeb.Services
 
                         case "Nominee Failed":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            //formattedBody = body;
                             nomItem["Failure_x0020_Email"] = formattedBody;
                             nom = (FieldUserValue[])nomItem["Nominees"];
                             To.AddRange(nom);
@@ -288,7 +285,6 @@ namespace EmailEnhancementWeb.Services
 
                         case "Nominee Selected":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            //formattedBody = body;
                             nomItem["Success_x0020_Email"] = formattedBody;
                             nom = (FieldUserValue[])nomItem["Nominees"];
                             To.AddRange(nom);
@@ -302,7 +298,6 @@ namespace EmailEnhancementWeb.Services
 
                         case "Reviewer":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            //formattedBody = body;
                             nomItem["Reviewer_x0020_Email"] = formattedBody;
                             nom = (FieldUserValue[])nomItem["Reviewers"];
                             To.AddRange(nom);
@@ -314,7 +309,6 @@ namespace EmailEnhancementWeb.Services
 
                         case "Reviewer Reminder":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            //formattedBody = body;
                             nomItem["Reminder_x0020_Email"] = formattedBody;
                             nom = (FieldUserValue[])nomItem["Reviewers"];
                             To.AddRange(nom);
@@ -326,7 +320,6 @@ namespace EmailEnhancementWeb.Services
 
                         case "Nominator Notify":
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            //formattedBody = body;
                             nomItem["Nominator_x0020_Email"] = formattedBody;
 
                             n = (FieldUserValue)nomItem["Nominator"];
@@ -343,7 +336,7 @@ namespace EmailEnhancementWeb.Services
 
                     nomItem.Update();
                     clientContext.ExecuteQuery();
-                    updateEmailSendList(clientContext, nominationId, nomItem, subject, formattedBody, To, CC, templateType);
+                    updateEmailSendList(clientContext, nominationId, nomItem, subject, formattedBody, To, CC, templateType, sendMail);
                 }
             }
             catch (Exception ex)
@@ -365,7 +358,7 @@ namespace EmailEnhancementWeb.Services
         }
 
         //updates the emailsend list based on the nominationID
-        public static void updateEmailSendList(ClientContext clientContext, string nominationId, ListItem nomItem, string subject, string body, List<FieldUserValue> To, List<FieldUserValue> CC, string templateType)
+        public static void updateEmailSendList(ClientContext clientContext, string nominationId, ListItem nomItem, string subject, string body, List<FieldUserValue> To, List<FieldUserValue> CC, string templateType, bool sendMail)
         {
 
             List emailSend = clientContext.Web.Lists.GetByTitle("EmailSend");
@@ -393,6 +386,7 @@ namespace EmailEnhancementWeb.Services
             {
                 if (status == "Draft" && templateType == "Manager Retract Notify")
                 {
+                    mail["Send_x0020_Mail"] = sendMail;
                     mail["Subject"] = subject;
                     mail["Body"] = body;
                     mail["To"] = To;
@@ -400,6 +394,7 @@ namespace EmailEnhancementWeb.Services
                 }
                 if (status == "Submitted" && templateType == "Submitted")
                 {
+                    mail["Send_x0020_Mail"] = sendMail;
                     mail["Subject"] = subject;
                     mail["Body"] = body;
                     mail["To"] = To;
@@ -407,6 +402,7 @@ namespace EmailEnhancementWeb.Services
                 }
                 if (status == "WaitingManagerApproval" && templateType == "Manager")
                 {
+                    mail["Send_x0020_Mail"] = sendMail;
                     mail["Subject"] = subject;
                     mail["Body"] = body;
                     mail["To"] = To;
@@ -414,6 +410,7 @@ namespace EmailEnhancementWeb.Services
                 }
                 if (status == "InReview" && templateType == "Reviewer")
                 {
+                    mail["Send_x0020_Mail"] = sendMail;
                     mail["Subject"] = subject;
                     mail["Body"] = body;
                     mail["To"] = To;
@@ -421,6 +418,7 @@ namespace EmailEnhancementWeb.Services
                 }
                 if (status == "Completed" && templateType == "Nominee Selected")
                 {
+                    mail["Send_x0020_Mail"] = sendMail;
                     mail["Subject"] = subject;
                     mail["Body"] = body;
                     mail["To"] = To;
@@ -428,12 +426,15 @@ namespace EmailEnhancementWeb.Services
                 }
                 if (status == "NomineeFailed" && templateType == "Rejected")
                 {
+                    mail["Send_x0020_Mail"] = sendMail;
+                    mail["Subject"] = subject;
                     mail["Body"] = body;
                     mail["To"] = To;
                     mail["CC"] = CC;
                 }
                 if (status == "NominatorNotify" && templateType == "Nominator Notify")
                 {
+                    mail["Send_x0020_Mail"] = sendMail;
                     mail["Subject"] = subject;
                     mail["Body"] = body;
                     mail["To"] = To;
@@ -441,14 +442,12 @@ namespace EmailEnhancementWeb.Services
                 }
                 if (status == "ManagerRejected" && templateType == "Manager Rejected")
                 {
+                    mail["Send_x0020_Mail"] = sendMail;
                     mail["Subject"] = subject;
                     mail["Body"] = body;
                     mail["To"] = To;
                     mail["CC"] = CC;
                 }
-
-                //mail["Body"] = body;
-                //mail["Subject"] = subject;
                 mail.Update();
                 clientContext.ExecuteQuery();
             }
