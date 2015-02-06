@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 using System.Configuration;
 using Microsoft.SharePoint.Client;
 using Microsoft.SharePoint.Client.EventReceivers;
@@ -25,8 +26,16 @@ namespace EmailEnhancementWeb.Services
 
                     if (properties.EventType == SPRemoteEventType.ItemAdded)
                     {
+                        try
+                        {
+                            itemaddevent(properties);
+                        }
+                        catch (Exception ex)
+                        {
+                            Trace.TraceError("Failed to call itemaddevent method", ex);
+                            Console.Error.WriteLine("Failed to itemaddevent method" + ex);
+                        }
 
-                        itemaddevent(properties);
                     }
 
                     else if (properties.EventType == SPRemoteEventType.ItemUpdated)
@@ -38,20 +47,9 @@ namespace EmailEnhancementWeb.Services
 
                         catch (Exception ex)
                         {
-                            // Karthik code
-                            clientContext.Load(clientContext.Web);
-                            clientContext.ExecuteQuery();
-                            List imageLibrary = clientContext.Web.Lists.GetByTitle("Test");
-                            ListItemCreationInformation itemCreateInfo = new ListItemCreationInformation();
-                            ListItem oListItem = imageLibrary.GetItemById(14);
-
-                            oListItem["Title"] = "tcs:" + ex.ToString();
-                            oListItem.Update();
-                            clientContext.ExecuteQuery();
-
+                            Trace.TraceError("Failed to call itemaddevent method", ex);
+                            Console.Error.WriteLine("Failed to itemaddevent method" + ex);
                         }
-
-
                     }
                 }
             }
@@ -64,28 +62,14 @@ namespace EmailEnhancementWeb.Services
             throw new NotImplementedException();
         }
 
+        //called on itemupdated and itemadded event
         public static void itemaddevent(SPRemoteEventProperties properties)
         {
             using (ClientContext clientContext = TokenHelper.CreateRemoteEventReceiverClientContext(properties))
             {
 
-
                 if (clientContext != null)
                 {
-
-
-
-                    /* Karthik code
-                    clientContext.Load(clientContext.Web);
-                    clientContext.ExecuteQuery();
-                    List imageLibrary = clientContext.Web.Lists.GetByTitle("Test");
-                    ListItemCreationInformation itemCreateInfo = new ListItemCreationInformation();
-                    ListItem oListItem = imageLibrary.GetItemById(14);
-           
-                    oListItem["Title"] = "tcs:" ;
-                    oListItem.Update();
-                    clientContext.ExecuteQuery();
-                     * */
 
                     try
                     {
@@ -95,11 +79,12 @@ namespace EmailEnhancementWeb.Services
                         List questionChoice = clientContext.Web.Lists.GetByTitle("Question Choice");
                         List nominations = clientContext.Web.Lists.GetByTitle("Nomination");
 
-                        string eventlist = properties.ItemEventProperties.ListTitle;
+                        //string eventlist = properties.ItemEventProperties.ListTitle;
                         ListItem item = clientContext.Web.Lists.GetByTitle("Email Template").GetItemById(
                         properties.ItemEventProperties.ListItemId);
                         clientContext.Load(item);
                         clientContext.ExecuteQuery();
+
                         FieldLookupValue group = (FieldLookupValue)item["Choice_x0020_ID"];
                         string choiceID = group.LookupValue;
                         string templateType = Convert.ToString(item["Template_x0020_Type"]);
@@ -108,15 +93,6 @@ namespace EmailEnhancementWeb.Services
                         string subject = Convert.ToString(item["Subject"]);
                         bool sendMail = Convert.ToBoolean(item["Send_x0020_Mail"]);
 
-                        //List test = clientContext.Web.Lists.GetByTitle("Test");
-                        //ListItemCreationInformation cInfo = new ListItemCreationInformation();
-                        //ListItem newItem = test.AddItem(cInfo);
-                        //string text = choiceID + body + templateType + ImageUrl;
-                        //newItem["Title"] = text;
-                        //newItem.Update();
-                        //clientContext.ExecuteQuery();
-
-
                         CamlQuery query = new CamlQuery();
                         query.ViewXml = string.Format("<View><Query>" +
                                                     "<Where>" +
@@ -124,6 +100,8 @@ namespace EmailEnhancementWeb.Services
                                                             "<Value Type='Text'>{0}</Value></Eq>" +
                                                         "</Where></Query><RowLimit>500</RowLimit></View>", choiceID);
 
+                        Trace.TraceInformation("Query Question choice list based on BU/BG query:" + query.ViewXml);
+                        Console.Out.WriteLine("Query Question choice list based on BU/BG query:" + query.ViewXml);
                         Microsoft.SharePoint.Client.ListItemCollection spItems = questionChoice.GetItems(query);
 
                         clientContext.Load(spItems);
@@ -132,28 +110,22 @@ namespace EmailEnhancementWeb.Services
                         foreach (ListItem spItem in spItems)
                         {
                             string choiceEN = Convert.ToString(spItem["Choice_x0020_EN"]);
+                            Trace.TraceInformation("BU/BG value to query nominations:" + choiceEN);
+                            Console.Out.WriteLine("BU/BG value to query nominations:" + choiceEN);
                             updateNominations(clientContext, nominations, templateType, choiceEN, body, subject, ImageUrl, sendMail);
 
                         }
                     }
                     catch (Exception ex)
                     {
-                        // Karthik code
-                        clientContext.Load(clientContext.Web);
-                        clientContext.ExecuteQuery();
-                        List imageLibrary = clientContext.Web.Lists.GetByTitle("Test");
-                        ListItemCreationInformation itemCreateInfo = new ListItemCreationInformation();
-                        ListItem oListItem = imageLibrary.GetItemById(14);
-
-                        oListItem["Title"] = "tcs:" + ex.ToString();
-                        oListItem.Update();
-                        clientContext.ExecuteQuery();
- 
+                        Trace.TraceError("Failed to update nomination and emailsend list", ex);
+                        Console.Error.WriteLine("Failed to update nomination and emailsend list" + ex);
                     }
                 }
             }
         }
 
+        //updates the nomination list based on BU/BG and template type
         public static void updateNominations(ClientContext clientContext, List nomination, string templateType, string choiceEN, string body, string subject, string ImageUrl, bool sendMail)
         {
             try
@@ -165,6 +137,8 @@ namespace EmailEnhancementWeb.Services
                                                     "<Value Type='Text'>{0}</Value></Eq>" +
                                                 "</Where></Query><RowLimit>500</RowLimit></View>", choiceEN);
 
+                Trace.TraceInformation("Query nominations list based on BU/BG query:" + nominations.ViewXml);
+                Console.Out.WriteLine("Query nominations list based on BU/BG query:" + nominations.ViewXml);
                 Microsoft.SharePoint.Client.ListItemCollection nItems = nomination.GetItems(nominations);
                 clientContext.Load(nItems);
                 clientContext.ExecuteQuery();
@@ -180,18 +154,18 @@ namespace EmailEnhancementWeb.Services
                     string nominationId = nomItem.Id.ToString();
                     string formattedBody = string.Empty;
 
+                    Trace.TraceInformation("NominationID =" +nominationId+ "Template Type =" +templateType);
+                    Console.Out.WriteLine("NominationID =" + nominationId + "Template Type =" + templateType);
+
                     //updates the nomination list based on the email templateType value passed
                     switch (templateType)
                     {
                         case "Manager":
 
                             formattedBody = ExpandEmailBody(body, nomItem, ImageUrl);
-                            //formattedBody = body;
                             nomItem["Manager_x0020_Email"] = formattedBody;
                             mgr = (FieldUserValue)nomItem["Approving_x0020_Manager"];
                             To.Add(mgr);
-
-
 
                             coords = (FieldUserValue[])nomItem["Coordinators"];
                             if (coords != null)
@@ -249,7 +223,6 @@ namespace EmailEnhancementWeb.Services
                             if (coords != null)
                                 CC.AddRange(coords);
 
-                            DateTime start = (DateTime)nomItem["Review_x0020_Start"];
                             break;
 
                         case "Submitted":
@@ -341,17 +314,8 @@ namespace EmailEnhancementWeb.Services
             }
             catch (Exception ex)
             {
-                // Karthik code
-                clientContext.Load(clientContext.Web);
-                clientContext.ExecuteQuery();
-                List imageLibrary = clientContext.Web.Lists.GetByTitle("Test");
-                ListItemCreationInformation itemCreateInfo = new ListItemCreationInformation();
-                ListItem oListItem = imageLibrary.GetItemById(14);
-
-                oListItem["Title"] = "tcs:" + ex.ToString();
-                oListItem.Update();
-                clientContext.ExecuteQuery();
-
+                Trace.TraceError("Failed to update nomination list", ex);
+                Console.Error.WriteLine("Failed to update nomination list" + ex);
             }
 
             
@@ -360,96 +324,92 @@ namespace EmailEnhancementWeb.Services
         //updates the emailsend list based on the nominationID
         public static void updateEmailSendList(ClientContext clientContext, string nominationId, ListItem nomItem, string subject, string body, List<FieldUserValue> To, List<FieldUserValue> CC, string templateType, bool sendMail)
         {
-
-            List emailSend = clientContext.Web.Lists.GetByTitle("EmailSend");
-
-            string status = Convert.ToString(nomItem["Submission_x0020_Status"]);
-            string team = Convert.ToString(nomItem["Team_x0020_Name"]);
-            StringBuilder builder = new StringBuilder(subject);
-            builder.Replace("{0}", team);
-            subject = builder.ToString();
-
-            CamlQuery query;
-
-            query = new CamlQuery();
-            query.ViewXml = string.Format("<View><Query>" +
-                            "<Where>" +
-                                    "<Eq><FieldRef Name='Nomination' LookupId='TRUE'/>" +
-                                    "<Value Type='Lookup'>{0}</Value></Eq>" +
-                            "</Where></Query><ViewFields><FieldRef Name='ID' /><RowLimit>500</RowLimit></ViewFields></View>", nominationId);
-
-            Microsoft.SharePoint.Client.ListItemCollection mails = emailSend.GetItems(query);
-            clientContext.Load(mails);
-            clientContext.ExecuteQuery();
-
-            foreach (ListItem mail in mails)
+            try
             {
-                if (status == "Draft" && templateType == "Manager Retract Notify")
-                {
-                    mail["Send_x0020_Mail"] = sendMail;
-                    mail["Subject"] = subject;
-                    mail["Body"] = body;
-                    mail["To"] = To;
-                    mail["CC"] = CC;
-                }
-                if (status == "Submitted" && templateType == "Submitted")
-                {
-                    mail["Send_x0020_Mail"] = sendMail;
-                    mail["Subject"] = subject;
-                    mail["Body"] = body;
-                    mail["To"] = To;
-                    mail["CC"] = CC;
-                }
-                if (status == "WaitingManagerApproval" && templateType == "Manager")
-                {
-                    mail["Send_x0020_Mail"] = sendMail;
-                    mail["Subject"] = subject;
-                    mail["Body"] = body;
-                    mail["To"] = To;
-                    mail["CC"] = CC;
-                }
-                if (status == "InReview" && templateType == "Reviewer")
-                {
-                    mail["Send_x0020_Mail"] = sendMail;
-                    mail["Subject"] = subject;
-                    mail["Body"] = body;
-                    mail["To"] = To;
-                    mail["CC"] = CC;
-                }
-                if (status == "Completed" && templateType == "Nominee Selected")
-                {
-                    mail["Send_x0020_Mail"] = sendMail;
-                    mail["Subject"] = subject;
-                    mail["Body"] = body;
-                    mail["To"] = To;
-                    mail["CC"] = CC;
-                }
-                if (status == "NomineeFailed" && templateType == "Rejected")
-                {
-                    mail["Send_x0020_Mail"] = sendMail;
-                    mail["Subject"] = subject;
-                    mail["Body"] = body;
-                    mail["To"] = To;
-                    mail["CC"] = CC;
-                }
-                if (status == "NominatorNotify" && templateType == "Nominator Notify")
-                {
-                    mail["Send_x0020_Mail"] = sendMail;
-                    mail["Subject"] = subject;
-                    mail["Body"] = body;
-                    mail["To"] = To;
-                    mail["CC"] = CC;
-                }
-                if (status == "ManagerRejected" && templateType == "Manager Rejected")
-                {
-                    mail["Send_x0020_Mail"] = sendMail;
-                    mail["Subject"] = subject;
-                    mail["Body"] = body;
-                    mail["To"] = To;
-                    mail["CC"] = CC;
-                }
-                mail.Update();
+                List emailSend = clientContext.Web.Lists.GetByTitle("EmailSend");
+
+                string status = Convert.ToString(nomItem["Submission_x0020_Status"]);
+                string team = Convert.ToString(nomItem["Team_x0020_Name"]);
+                StringBuilder builder = new StringBuilder(subject);
+                builder.Replace("{0}", team);
+                subject = builder.ToString();
+
+                CamlQuery query;
+
+                query = new CamlQuery();
+                query.ViewXml = string.Format("<View><Query>" +
+                                "<Where>" +
+                                        "<Eq><FieldRef Name='Nomination' LookupId='TRUE'/>" +
+                                        "<Value Type='Lookup'>{0}</Value></Eq>" +
+                                "</Where></Query><ViewFields><FieldRef Name='ID' /><RowLimit>500</RowLimit></ViewFields></View>", nominationId);
+
+                Trace.TraceInformation("Query emailsend list based on nominationID query:" + query.ViewXml);
+                Console.Out.WriteLine("Query emailsend list based on nominationID query:" + query.ViewXml);
+                Microsoft.SharePoint.Client.ListItemCollection mails = emailSend.GetItems(query);
+                clientContext.Load(mails);
                 clientContext.ExecuteQuery();
+
+
+                Trace.TraceInformation("Submission Status =" + status);
+                Console.Out.WriteLine("Submission Status =" + status);
+                Trace.TraceInformation("NominationID =" + nominationId + "Template Type =" + templateType+ "Team Name =" +team);
+                Console.Out.WriteLine("NominationID =" + nominationId + "Template Type =" + templateType + "Team Name =" + team);
+
+                foreach (ListItem mail in mails)
+                {
+                    var update = false;
+                    string sendType = Convert.ToString(mail["Send_x0020_Type"]);
+
+                    if (status == "Draft" && templateType == "Manager Retract Notify")
+                    {
+                        update = true;
+                    }
+                    if (status == "Submitted" && templateType == "Submitted")
+                    {
+                        update = true;
+                    }
+                    if (status == "WaitingManagerApproval" && templateType == "Manager" && sendType == "Manager")
+                    {
+                        update = true;
+                    }
+                    if (status == "InReview" && templateType == "Reviewer" && sendType == "Reviewer")
+                    {
+                        update = true;
+                    }
+                    if (status == "Completed" && templateType == "Nominee Selected")
+                    {
+                        update = true;
+                    }
+                    if (status == "NomineeFailed" && templateType == "Rejected")
+                    {
+                        update = true;
+                    }
+                    if (status == "NominatorNotify" && templateType == "Nominator Notify")
+                    {
+                        update = true;
+                    }
+                    if (status == "ManagerRejected" && templateType == "Manager Rejected")
+                    {
+                        update = true;
+                    }
+
+                    if (update)
+                    {
+                        mail["Send_x0020_Mail"] = sendMail;
+                        mail["Subject"] = subject;
+                        mail["Body"] = body;
+                        mail["To"] = To;
+                        mail["CC"] = CC;
+                        mail.Update();
+                        clientContext.ExecuteQuery();
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("Failed to update emailsend list", ex);
+                Console.Error.WriteLine("Failed to update emailsend list" + ex);
             }
 
         }
@@ -457,54 +417,66 @@ namespace EmailEnhancementWeb.Services
         //updates the nomination data in the body
         public static string ExpandEmailBody(string text, ListItem nomItem, string imageUrl)
         {
+            try
+            {
+                const string NOMINATOR = "${NOMINATOR}";
+                const string NOMINATION_SUMMARY = "${SUMMARY}";
+                const string NOMINATION_SIGNATURE = "${SIGNATURE}";
+                const string NOMINATION_TEAMNAME = "${TEAMNAME}";
+                const string NOMINATION_SUBMITDATE = "${SUBMITDATE}";
+                const string NOMINATION_URL = "${NOMINATION}";
 
-            const string NOMINATOR = "${NOMINATOR}";
-            const string NOMINATION_SUMMARY = "${SUMMARY}";
-            const string NOMINATION_SIGNATURE = "${SIGNATURE}";
-            const string NOMINATION_TEAMNAME = "${TEAMNAME}";
-            const string NOMINATION_SUBMITDATE = "${SUBMITDATE}";
-            const string NOMINATION_URL = "${NOMINATION}";
+                string nominatorUserID = Convert.ToString(((FieldUserValue)nomItem["Nominator"]).LookupValue);
+                string TeamName = Convert.ToString(nomItem["Team_x0020_Name"]);
+                string SubmittedDate = Convert.ToString((DateTime)nomItem["Submitted_x0020_Date"]);
 
-            string nominatorUserID = Convert.ToString(((FieldUserValue)nomItem["Nominator"]).LookupValue);
-            string TeamName = Convert.ToString(nomItem["Team_x0020_Name"]);
-            string SubmittedDate = Convert.ToString((DateTime)nomItem["Submitted_x0020_Date"]);
+                string url = string.Format("{0}/Nomination Summary/{1}-{1}.pdf", ConfigurationManager.AppSettings["SiteUrl"], nomItem.Id.ToString());
+                url = url.Replace(" ", "%20");
 
-            string url = string.Format("{0}/Nomination Summary/{1}-{1}.pdf", ConfigurationManager.AppSettings["SiteUrl"], nomItem.Id.ToString());
-            url = url.Replace(" ", "%20");
+                string tag = string.Format("<a href='{0}'>{1}</a>", url, "Click here for nomination summary");
 
-            string tag = string.Format("<a href='{0}'>{1}</a>", url, "Click here for nomination summary");
+                string img = string.Format("<img src='{0}'/>", imageUrl);
 
-            string img = string.Format("<img src='{0}'/>", imageUrl);
+                text = text.Replace(NOMINATOR, nominatorUserID);
+                text = text.Replace(Escape(NOMINATOR), nominatorUserID);
 
-            text = text.Replace(NOMINATOR, nominatorUserID);
-            text = text.Replace(Escape(NOMINATOR), nominatorUserID);
+                text = text.Replace(NOMINATION_SUMMARY, tag);
+                text = text.Replace(Escape(NOMINATION_SUMMARY), tag);
 
-            text = text.Replace(NOMINATION_SUMMARY, tag);
-            text = text.Replace(Escape(NOMINATION_SUMMARY), tag);
+                text = text.Replace(NOMINATION_SIGNATURE, img);
+                text = text.Replace(Escape(NOMINATION_SIGNATURE), img);
 
-            text = text.Replace(NOMINATION_SIGNATURE, img);
-            text = text.Replace(Escape(NOMINATION_SIGNATURE), img);
-
-            text = text.Replace(NOMINATION_TEAMNAME, TeamName);
-            text = text.Replace(Escape(NOMINATION_TEAMNAME), TeamName);
-
-
-            text = text.Replace(NOMINATION_SUBMITDATE, SubmittedDate);
-            text = text.Replace(Escape(NOMINATION_SUBMITDATE), SubmittedDate);
-
-            text = text.Replace(NOMINATION_URL, "<nomination.url>");
-            text = text.Replace(Escape(NOMINATION_URL), "<nomination.url>");
+                text = text.Replace(NOMINATION_TEAMNAME, TeamName);
+                text = text.Replace(Escape(NOMINATION_TEAMNAME), TeamName);
 
 
+                text = text.Replace(NOMINATION_SUBMITDATE, SubmittedDate);
+                text = text.Replace(Escape(NOMINATION_SUBMITDATE), SubmittedDate);
+
+                text = text.Replace(NOMINATION_URL, "<nomination.url>");
+                text = text.Replace(Escape(NOMINATION_URL), "<nomination.url>");
+
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("Failed to format the email body", ex);
+                Console.Error.WriteLine("Failed to format the email body" + ex);
+            }
             return text;
-
         }
 
         private static string Escape(string token)
         {
-            token = token.Replace("{", "&#123;");
-            token = token.Replace("}", "&#125;");
-
+            try
+            {
+                token = token.Replace("{", "&#123;");
+                token = token.Replace("}", "&#125;");
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("Failed to replace character", ex);
+                Console.Error.WriteLine("Failed to replace character" + ex);
+            }
             return token;
         }
     }

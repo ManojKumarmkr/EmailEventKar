@@ -89,42 +89,58 @@ namespace EmailEnhancementWeb.Services
 
                     if (!rerExists)
                     {
+
+                        // Item Added 
                         EventReceiverDefinitionCreationInformation receiver = new EventReceiverDefinitionCreationInformation();
+
                         receiver.EventType = EventReceiverType.ItemAdded;
                         receiver.ReceiverName = "EmailTemplateEventReceiver";
                         receiver.ReceiverClass ="EmailTemplateEventReceiver";
                         receiver.ReceiverAssembly = Assembly.GetExecutingAssembly().FullName;
+
                         OperationContext op = OperationContext.Current;
                         string str = op.RequestContext.RequestMessage.Headers.To.ToString();
                         string remoterersvc = str.Replace(str.Substring(str.IndexOf("AppEventReceiver")), "EmailTemplateEventReceiver.svc");
+
                         receiver.ReceiverUrl = remoterersvc;
                         receiver.Synchronization = EventReceiverSynchronization.Synchronous;
                         myList.EventReceivers.Add(receiver);
+                        clientContext.ExecuteQuery();
+
+                        // Item Updated
                         receiver = new EventReceiverDefinitionCreationInformation();
                         receiver.EventType = EventReceiverType.ItemUpdated;
-                        clientContext.ExecuteQuery();
+
                         receiver.ReceiverName = "EmailTemplateEventReceiver";
                         receiver.ReceiverClass = "EmailTemplateEventReceiver";
                         receiver.ReceiverAssembly = Assembly.GetExecutingAssembly().FullName;
+
                         op = OperationContext.Current;
                         str = op.RequestContext.RequestMessage.Headers.To.ToString();
                         remoterersvc = str.Replace(str.Substring(str.IndexOf("AppEventReceiver")), "EmailTemplateEventReceiver.svc");
+
                         receiver.ReceiverUrl = remoterersvc;
                         receiver.Synchronization = EventReceiverSynchronization.Synchronous;
                         myList.EventReceivers.Add(receiver);
+                        clientContext.ExecuteQuery();
+
+                        // Item Adding
                         receiver = new EventReceiverDefinitionCreationInformation();
                         receiver.EventType = EventReceiverType.ItemAdding;
-                        clientContext.ExecuteQuery();
+
                         receiver.ReceiverName = "EmailTemplateEventReceiver";
                         receiver.ReceiverClass = "EmailTemplateEventReceiver";
                         receiver.ReceiverAssembly = Assembly.GetExecutingAssembly().FullName;
+
                         op = OperationContext.Current;
                         str = op.RequestContext.RequestMessage.Headers.To.ToString();
                         remoterersvc = str.Replace(str.Substring(str.IndexOf("AppEventReceiver")), "EmailTemplateEventReceiver.svc");
+
                         receiver.ReceiverUrl = remoterersvc;
                         receiver.Synchronization = EventReceiverSynchronization.Synchronous;
                         myList.EventReceivers.Add(receiver); 
                         clientContext.ExecuteQuery();
+
                     }
 
                 }
