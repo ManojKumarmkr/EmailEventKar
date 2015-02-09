@@ -80,36 +80,36 @@ namespace EmailEnhancementWeb.Services
                         List nominations = clientContext.Web.Lists.GetByTitle("Nomination");
 
                         //string eventlist = properties.ItemEventProperties.ListTitle;
-                        ListItem item = clientContext.Web.Lists.GetByTitle("Email Template").GetItemById(
+                        ListItem etItem = clientContext.Web.Lists.GetByTitle("Email Template").GetItemById(
                         properties.ItemEventProperties.ListItemId);
-                        clientContext.Load(item);
+                        clientContext.Load(etItem);
                         clientContext.ExecuteQuery();
 
-                        FieldLookupValue group = (FieldLookupValue)item["Choice_x0020_ID"];
+                        FieldLookupValue group = (FieldLookupValue)etItem["Choice_x0020_ID"];
                         string choiceID = group.LookupValue;
-                        string templateType = Convert.ToString(item["Template_x0020_Type"]);
-                        string body = Convert.ToString(item["Body"]);
-                        string ImageUrl = Convert.ToString(item["Image_x0020_Path"]);
-                        string subject = Convert.ToString(item["Subject"]);
-                        bool sendMail = Convert.ToBoolean(item["Send_x0020_Mail"]);
+                        string templateType = Convert.ToString(etItem["Template_x0020_Type"]);
+                        string body = Convert.ToString(etItem["Body"]);
+                        string ImageUrl = Convert.ToString(etItem["Image_x0020_Path"]);
+                        string subject = Convert.ToString(etItem["Subject"]);
+                        bool sendMail = Convert.ToBoolean(etItem["Send_x0020_Mail"]);
 
-                        CamlQuery query = new CamlQuery();
-                        query.ViewXml = string.Format("<View><Query>" +
+                        CamlQuery qcquery = new CamlQuery();
+                        qcquery.ViewXml = string.Format("<View><Query>" +
                                                     "<Where>" +
                                                             "<Eq><FieldRef Name='Title' />" +
                                                             "<Value Type='Text'>{0}</Value></Eq>" +
                                                         "</Where></Query><RowLimit>500</RowLimit></View>", choiceID);
 
-                        Trace.TraceInformation("Query Question choice list based on BU/BG query:" + query.ViewXml);
-                        Console.Out.WriteLine("Query Question choice list based on BU/BG query:" + query.ViewXml);
-                        Microsoft.SharePoint.Client.ListItemCollection spItems = questionChoice.GetItems(query);
+                        Trace.TraceInformation("Query Question choice list based on BU/BG query:" + qcquery.ViewXml);
+                        Console.Out.WriteLine("Query Question choice list based on BU/BG query:" + qcquery.ViewXml);
+                        Microsoft.SharePoint.Client.ListItemCollection qcItems = questionChoice.GetItems(qcquery);
 
-                        clientContext.Load(spItems);
+                        clientContext.Load(qcItems);
                         clientContext.ExecuteQuery();
 
-                        foreach (ListItem spItem in spItems)
+                        foreach (ListItem qcItem in qcItems)
                         {
-                            string choiceEN = Convert.ToString(spItem["Choice_x0020_EN"]);
+                            string choiceEN = Convert.ToString(qcItem["Choice_x0020_EN"]);
                             Trace.TraceInformation("BU/BG value to query nominations:" + choiceEN);
                             Console.Out.WriteLine("BU/BG value to query nominations:" + choiceEN);
                             updateNominations(clientContext, nominations, templateType, choiceEN, body, subject, ImageUrl, sendMail);
@@ -334,18 +334,18 @@ namespace EmailEnhancementWeb.Services
                 builder.Replace("{0}", team);
                 subject = builder.ToString();
 
-                CamlQuery query;
+                CamlQuery esquery;
 
-                query = new CamlQuery();
-                query.ViewXml = string.Format("<View><Query>" +
+                esquery = new CamlQuery();
+                esquery.ViewXml = string.Format("<View><Query>" +
                                 "<Where>" +
                                         "<Eq><FieldRef Name='Nomination' LookupId='TRUE'/>" +
                                         "<Value Type='Lookup'>{0}</Value></Eq>" +
                                 "</Where></Query><ViewFields><FieldRef Name='ID' /><RowLimit>500</RowLimit></ViewFields></View>", nominationId);
 
-                Trace.TraceInformation("Query emailsend list based on nominationID query:" + query.ViewXml);
-                Console.Out.WriteLine("Query emailsend list based on nominationID query:" + query.ViewXml);
-                Microsoft.SharePoint.Client.ListItemCollection mails = emailSend.GetItems(query);
+                Trace.TraceInformation("Query emailsend list based on nominationID query:" + esquery.ViewXml);
+                Console.Out.WriteLine("Query emailsend list based on nominationID query:" + esquery.ViewXml);
+                Microsoft.SharePoint.Client.ListItemCollection mails = emailSend.GetItems(esquery);
                 clientContext.Load(mails);
                 clientContext.ExecuteQuery();
 
@@ -408,7 +408,7 @@ namespace EmailEnhancementWeb.Services
             }
             catch (Exception ex)
             {
-                Trace.TraceError("Failed to update emailsend list", ex);
+                Trace.TraceError("Failed to update emailsend list"+ex, ex);
                 Console.Error.WriteLine("Failed to update emailsend list" + ex);
             }
 
