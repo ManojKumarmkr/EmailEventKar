@@ -341,7 +341,7 @@ namespace EmailEnhancementWeb.Services
                                 "<Where>" +
                                         "<Eq><FieldRef Name='Nomination' LookupId='TRUE'/>" +
                                         "<Value Type='Lookup'>{0}</Value></Eq>" +
-                                "</Where></Query><ViewFields><FieldRef Name='ID' /><RowLimit>500</RowLimit></ViewFields><ViewFields><FieldRef Name='Send_x0020_Type' /><RowLimit>500</RowLimit></ViewFields></View>", nominationId);
+                                "</Where></Query><ViewFields><FieldRef Name='ID' /><FieldRef Name='Send_x0020_Type' /><RowLimit>500</RowLimit></ViewFields></View>", nominationId);
 
                 Trace.TraceInformation("Query emailsend list based on nominationID query:" + esquery.ViewXml);
                 Console.Out.WriteLine("Query emailsend list based on nominationID query:" + esquery.ViewXml);
